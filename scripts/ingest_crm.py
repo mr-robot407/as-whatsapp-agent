@@ -1,15 +1,35 @@
 #!/usr/bin/env python3
-"""Ingest DATABASE/*.json into DynamoDB `as-email-contacts`.
+"""Ingest DATABASE/*_crm.json into DynamoDB `as-email-contacts`.
 
-Each JSON row is expected to have (at minimum):
-  {"name": "…", "phone_e164" (or "phone"): "+91…"}  and optionally  "emails": ["…"]
+Source shape (both files):
+    {
+      "schema_version": "1.0",
+      "contact_count": N,
+      "contacts": [
+        {
+          "contact_id": "uuid",       # preserved as the DDB partition key
+          "name": "…",
+          "contact_type": "individual",
+          "phones": ["+91…", …],       # first entry is the primary phone
+          "emails": ["…", …],
+          "data_quality_flags": [],
+          "needs_review": false
+        }, …
+      ]
+    }
 
-Behaviour: skip rows without a valid phone; merge with existing PROFILE
-(matched by GSI-PHONE) — never overwrite dnd / lead_score / campaign counts.
-Idempotent.
+Behaviour:
+  * Preserves source `contact_id` — re-running the script overwrites the
+    PROFILE for that id (stateful fields like dnd/lead_score/session are
+    RESET; use with care on second runs).
+  * Skips rows without at least one parseable phone.
+  * `--fast` uses batch_writer (25 puts per call, no dedupe, no conditions)
+    — safe for the *first* ingest into an empty table. Default mode does
+    per-item PutItem with condition (skip if contact_id already exists).
 
 Usage:
-  python3 scripts/ingest_crm.py
+  python3 scripts/ingest_crm.py --fast              # first ingest, empty table
+  python3 scripts/ingest_crm.py                     # safe re-run
   python3 scripts/ingest_crm.py --file DATABASE/phone_only_crm.json
   python3 scripts/ingest_crm.py --dry-run
 """
@@ -20,12 +40,11 @@ import argparse
 import json
 import os
 import sys
-import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
 import boto3
-from boto3.dynamodb.conditions import Key
+from botocore.exceptions import ClientError
 
 REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO / "src" / "shared"))
@@ -34,12 +53,13 @@ from identity import normalise_e164  # noqa: E402
 
 TABLE_NAME = os.environ.get("TABLE_NAME", "as-email-contacts")
 REGION = os.environ.get("AWS_REGION", "ap-south-1")
-GSI_PHONE = os.environ.get("GSI_PHONE", "GSI-PHONE")
 
 
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--file", action="append", default=None)
+    ap.add_argument("--fast", action="store_true",
+                    help="Use batch_writer (25 puts/call). Safe only on first ingest.")
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
 
@@ -48,9 +68,10 @@ def main() -> int:
         str(REPO / "DATABASE" / "phone_only_crm.json"),
     ]
 
-    table = boto3.resource("dynamodb", region_name=REGION).Table(TABLE_NAME)
+    session = boto3.Session(region_name=REGION)
+    table = session.resource("dynamodb").Table(TABLE_NAME)
 
-    stats = {"read": 0, "created": 0, "merged": 0, "skipped_no_phone": 0}
+    stats = {"read": 0, "written": 0, "skipped_dup": 0, "skipped_no_phone": 0}
 
     for path in files:
         p = Path(path)
@@ -58,39 +79,82 @@ def main() -> int:
             print(f"warning: {path} not found — skipping")
             continue
         print(f"loading {path}…")
-        with open(p) as fh:
-            rows = json.load(fh)
-        for row in rows:
-            stats["read"] += 1
-            try:
-                phone = normalise_e164(row.get("phone") or row.get("phone_e164") or "")
-            except Exception:
-                stats["skipped_no_phone"] += 1
-                continue
+        payload = json.loads(p.read_text())
+        contacts = payload.get("contacts", [])
+        print(f"  {len(contacts):,} contacts")
 
-            existing = table.query(
-                IndexName=GSI_PHONE,
-                KeyConditionExpression=Key("phone_e164").eq(phone),
-                Limit=1,
-            ).get("Items", [])
-
-            if existing:
-                stats["merged"] += 1
-                if not args.dry_run:
-                    _merge(table, existing[0], row)
-                continue
-
-            stats["created"] += 1
-            if not args.dry_run:
-                _create(table, phone, row)
+        if args.fast and not args.dry_run:
+            _fast_write(table, contacts, stats)
+        else:
+            _slow_write(table, contacts, stats, dry_run=args.dry_run)
 
     print(f"done: {stats}")
     return 0
 
 
-def _create(table, phone: str, row: dict) -> None:
+# ─── Fast path — batch_writer (no conditions) ────────────────────────────────
+
+def _fast_write(table, contacts, stats):
+    with table.batch_writer(overwrite_by_pkeys=["contact_id", "sk"]) as bw:
+        for row in contacts:
+            stats["read"] += 1
+            item = _build_item(row)
+            if not item:
+                stats["skipped_no_phone"] += 1
+                continue
+            bw.put_item(Item=item)
+            stats["written"] += 1
+            if stats["written"] % 5000 == 0:
+                print(f"  … {stats['written']:,} written")
+
+
+# ─── Slow path — per-item PutItem with condition ─────────────────────────────
+
+def _slow_write(table, contacts, stats, dry_run):
+    for row in contacts:
+        stats["read"] += 1
+        item = _build_item(row)
+        if not item:
+            stats["skipped_no_phone"] += 1
+            continue
+        if dry_run:
+            print(f"  [dry-run] {item['contact_id']} {item['phone_e164']} {item.get('name', '')}")
+            continue
+        try:
+            table.put_item(
+                Item=item,
+                ConditionExpression="attribute_not_exists(contact_id)",
+            )
+            stats["written"] += 1
+        except ClientError as exc:
+            if exc.response["Error"]["Code"] == "ConditionalCheckFailedException":
+                stats["skipped_dup"] += 1
+            else:
+                raise
+        if stats["written"] % 5000 == 0 and stats["written"]:
+            print(f"  … {stats['written']:,} written")
+
+
+def _build_item(row: dict) -> dict | None:
+    phones = row.get("phones") or []
+    if row.get("phone"):
+        phones = [row["phone"]] + phones
+    if row.get("phone_e164"):
+        phones = [row["phone_e164"]] + phones
+
+    phone = None
+    for p in phones:
+        try:
+            phone = normalise_e164(p)
+            break
+        except Exception:
+            continue
+    if not phone:
+        return None
+
+    contact_id = row.get("contact_id") or _mk_uuid()
     item = {
-        "contact_id": str(uuid.uuid4()),
+        "contact_id": contact_id,
         "sk": "PROFILE",
         "phone_e164": phone,
         "created_at": datetime.now(timezone.utc).isoformat(),
@@ -101,35 +165,23 @@ def _create(table, phone: str, row: dict) -> None:
     }
     if row.get("name"):
         item["name"] = row["name"]
+    if row.get("contact_type"):
+        item["contact_type"] = row["contact_type"]
     emails = row.get("emails") or ([row["email"]] if row.get("email") else [])
     if emails:
         item["email_normalised"] = emails[0].strip().lower()
-        item["all_emails"] = [e.strip().lower() for e in emails]
-    table.put_item(Item=item)
+        if len(emails) > 1:
+            item["all_emails"] = [e.strip().lower() for e in emails]
+    if row.get("data_quality_flags"):
+        item["data_quality_flags"] = row["data_quality_flags"]
+    if row.get("needs_review"):
+        item["needs_review"] = True
+    return item
 
 
-def _merge(table, existing: dict, row: dict) -> None:
-    updates: list[str] = []
-    values: dict = {}
-    names_dict: dict = {}
-    if row.get("name") and not existing.get("name"):
-        updates.append("#name = :n")
-        values[":n"] = row["name"]
-        names_dict["#name"] = "name"
-    emails = row.get("emails") or ([row["email"]] if row.get("email") else [])
-    if emails and not existing.get("email_normalised"):
-        updates.append("email_normalised = :e")
-        values[":e"] = emails[0].strip().lower()
-    if not updates:
-        return
-    kwargs = {
-        "Key": {"contact_id": existing["contact_id"], "sk": "PROFILE"},
-        "UpdateExpression": "SET " + ", ".join(updates),
-        "ExpressionAttributeValues": values,
-    }
-    if names_dict:
-        kwargs["ExpressionAttributeNames"] = names_dict
-    table.update_item(**kwargs)
+def _mk_uuid() -> str:
+    import uuid
+    return str(uuid.uuid4())
 
 
 if __name__ == "__main__":

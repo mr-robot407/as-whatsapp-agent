@@ -45,7 +45,7 @@ The studio's WhatsApp Business Account and Cloud API app must exist before Engin
 | WABA ID | 1615402749911697 | ✅ |
 | Display name (fixed) | Atelier Shreenu | ✅ |
 | Phone number (fixed) | +91 95602 06195 | ✅ |
-| Phone Number ID (Cloud API) |  | ☐ |
+| Phone Number ID (Cloud API) | 1254221294446336 | ✅ |
 | Number registration status | Registered / Pending OTP | ☐ |
 | Messaging tier (Tier 1 / 2 / 3 / Unlimited) |  | ☐ |
 | Business profile description | *Atelier Shreenu — Architecture and Interior Design. By appointment. Gurugram.* | ✅ |
@@ -58,10 +58,10 @@ The studio's WhatsApp Business Account and Cloud API app must exist before Engin
 
 | Field | Value | Status |
 |---|---|---|
-| Meta App ID |  | ☐ |
-| Meta App name |  | ☐ |
+| Meta App ID | 4561524984133394 | ✅ |
+| Meta App name | WABA — Atelier Shreenu | ✅ |
 | App mode | Live | ☐ |
-| System User created inside Business Manager (name) |  | ☐ |
+| System User created inside Business Manager (name) | Shreenu Mukherjee | ✅ |
 | System User → WABA asset assignment | Full control | ☐ |
 | Long-lived System User access token (never expires) |  | ☐ |
 | App secret (Settings → Basic) |  | ☐ |
