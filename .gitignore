@@ -1,0 +1,31 @@
+# SAM build artefacts
+.aws-sam/
+samconfig.toml.local
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+*.egg-info/
+
+# Secrets — never commit
+.env
+*.env
+*.pem
+*.key
+
+# Local assets (hero images — upload via scripts/upload_assets.sh)
+local_assets/
+
+# macOS
+.DS_Store
+
+# Test artefacts
+.pytest_cache/
+htmlcov/
+.coverage
+
+# Node (if any tooling added later)
+node_modules/

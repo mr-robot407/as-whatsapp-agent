@@ -1,0 +1,39 @@
+{
+  "_comment": "§10.2 Bedrock classifier labels + §10.3 priority ranking. COLLAB removed per v13 §5.1 — firm-to-firm collaboration approaches classify as VENDOR.",
+  "labels": [
+    "VENDOR",
+    "CLIENT",
+    "INTERN",
+    "JOB",
+    "PRESS",
+    "EVENT",
+    "STRATEGIC",
+    "ADMIN",
+    "INTERNAL",
+    "UNSURE"
+  ],
+  "label_to_state": {
+    "VENDOR":    "IN.01",
+    "CLIENT":    "IN.02",
+    "INTERN":    "IN.03",
+    "JOB":       "IN.04",
+    "PRESS":     "IN.05",
+    "EVENT":     "IN.07",
+    "STRATEGIC": "IN.08",
+    "ADMIN":     "IN.09",
+    "INTERNAL":  "IN.10",
+    "UNSURE":    "X.FALLBACK"
+  },
+  "priority_ranking": [
+    {"rank": 1,  "label": "CLIENT",   "state_id": "IN.02", "sla": "Acknowledgement within 2 hours; BD routing within 4 hours."},
+    {"rank": 2,  "label": "STRATEGIC","state_id": "IN.08", "sla": "Escalate immediately; partner notification."},
+    {"rank": 3,  "label": "JOB",      "state_id": "IN.04", "sla": "Acknowledgement within 24 hours; HR routing within 3 days."},
+    {"rank": 4,  "label": "INTERN",   "state_id": "IN.03", "sla": "Acknowledgement within 24 hours; HR routing within 5 days."},
+    {"rank": 5,  "label": "PRESS",    "state_id": "IN.05", "sla": "Human reply within 24 hours. HIGH brand value."},
+    {"rank": 6,  "label": "EVENT",    "state_id": "IN.07", "sla": "File; optional human follow-up."},
+    {"rank": 7,  "label": "ADMIN",    "state_id": "IN.09", "sla": "Compliance action flagged; reminder set."},
+    {"rank": 8,  "label": "VENDOR",   "state_id": "IN.01", "sla": "Duplicate check; archive. Includes firm-to-firm collaboration approaches."},
+    {"rank": 9,  "label": "INTERNAL", "state_id": "IN.10", "sla": "File under project folder."}
+  ],
+  "bedrock_system_prompt": "You are a single-label email classifier for an architecture and interior design studio. Read the subject line and the first 200 words of the email body. Return exactly one label from this set: VENDOR | CLIENT | INTERN | JOB | PRESS | EVENT | STRATEGIC | ADMIN | INTERNAL | UNSURE. VENDOR covers vendors, suppliers, service providers, and firm-to-firm collaboration approaches alike. Return the label only. No explanation. No punctuation."
+}

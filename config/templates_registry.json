@@ -1,0 +1,69 @@
+{
+  "notes": "Populated post-Meta approval. dlt_template_id populated post-DLT registration. Both are prerequisites for dispatch — a template with either field empty must be blocked at the wa_client layer.",
+  "templates": {
+    "OUTREACH_HOOK": {
+      "category": "MARKETING",
+      "state_id": "S2.00",
+      "meta_template_name": "atelier_shreenu_outreach_hook",
+      "meta_template_id": null,
+      "dlt_template_id": null,
+      "language": "en",
+      "components": ["header_image", "body", "footer", "buttons_quick_reply"]
+    },
+    "PROJECT_DISC_OFFER": {
+      "category": "UTILITY",
+      "state_id": "S1.17",
+      "meta_template_name": "atelier_shreenu_project_disc_offer",
+      "meta_template_id": null,
+      "dlt_template_id": null,
+      "language": "en",
+      "components": ["body", "buttons_quick_reply"]
+    },
+    "WALKTHROUGH_OFFER": {
+      "category": "UTILITY",
+      "state_id": "S1.19",
+      "meta_template_name": "atelier_shreenu_walkthrough_offer",
+      "meta_template_id": null,
+      "dlt_template_id": null,
+      "language": "en",
+      "components": ["body", "buttons_quick_reply"]
+    },
+    "OOH_ACK": {
+      "category": "UTILITY",
+      "state_id": "X.OOH",
+      "meta_template_name": "atelier_shreenu_ooh_ack",
+      "meta_template_id": null,
+      "dlt_template_id": null,
+      "language": "en",
+      "components": ["body"]
+    },
+    "IDLE_REMINDER": {
+      "category": "UTILITY",
+      "state_id": "X.IDLE",
+      "meta_template_name": "atelier_shreenu_idle_reminder",
+      "meta_template_id": null,
+      "dlt_template_id": null,
+      "language": "en",
+      "components": ["body", "buttons_quick_reply"]
+    },
+    "BOOKING_REMINDER_24H": {
+      "category": "UTILITY",
+      "state_id": "S1.16 / S1.18 / S1.19a",
+      "meta_template_name": "atelier_shreenu_booking_reminder_24h",
+      "meta_template_id": null,
+      "dlt_template_id": null,
+      "language": "en",
+      "components": ["body"]
+    },
+    "BOOKING_REMINDER_2H_PARTNER": {
+      "category": "UTILITY",
+      "state_id": "S1.16 (internal)",
+      "meta_template_name": "atelier_shreenu_partner_reminder_2h",
+      "meta_template_id": null,
+      "dlt_template_id": null,
+      "language": "en",
+      "components": ["body"],
+      "audience": "partner_only"
+    }
+  }
+}

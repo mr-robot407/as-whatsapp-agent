@@ -1,0 +1,41 @@
+{
+  "_comment": "Engagement fees — single source of truth. All fees inclusive of 18% GST, billed by Shreenu and Ranjeet Design LLP. Project Discussion and Site & Vision Walkthrough fees credited in full toward the design consultancy fee where the Agreement is signed within 90 days of payment.",
+  "fees": [
+    {
+      "id": "discovery_call",
+      "label": "Discovery Call",
+      "amount_inr": 0,
+      "amount_display": "Complimentary",
+      "duration_minutes": 10,
+      "format": "Phone call",
+      "notes": "No fee, no obligation. Carries no crediting mechanic."
+    },
+    {
+      "id": "project_discussion",
+      "label": "Project Discussion",
+      "amount_inr": 1770,
+      "amount_display": "Rs. 1,770 (incl. GST)",
+      "duration_minutes": 30,
+      "format": "Google Meet",
+      "notes": "Inclusive of 18% GST. Credited in full toward the design consultancy fee where the Agreement is signed within 90 days of the date of payment."
+    },
+    {
+      "id": "site_walkthrough_ncr",
+      "label": "Site & Vision Walkthrough — Within NCR",
+      "amount_inr": 3540,
+      "amount_display": "Rs. 3,540 (incl. GST)",
+      "duration_minutes": 60,
+      "format": "On-site",
+      "notes": "Inclusive of 18% GST. Travel expenses billed separately at actuals. Credited in full toward the design consultancy fee where the Agreement is signed within 90 days of the date of payment."
+    },
+    {
+      "id": "site_walkthrough_outside_ncr",
+      "label": "Site & Vision Walkthrough — Outside NCR",
+      "amount_inr": 7080,
+      "amount_display": "Rs. 7,080 (incl. GST)",
+      "duration_minutes": 120,
+      "format": "On-site",
+      "notes": "Inclusive of 18% GST. Travel and accommodation billed separately at actuals. Credited in full toward the design consultancy fee where the Agreement is signed within 90 days of the date of payment."
+    }
+  ]
+}

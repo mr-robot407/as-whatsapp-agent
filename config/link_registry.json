@@ -1,0 +1,20 @@
+{
+  "notes": "Canonical base URLs per §3.4 Rule C. UTM layer (Rule D) is appended at dispatch time, not stored here.",
+  "instagram": "https://www.instagram.com/ateliershreenu/",
+  "website": "https://ateliershreenu.com",
+  "maps": "https://maps.app.goo.gl/K9vaZmpCLdMnyJ8r6",
+  "studio_email_mailto": "mailto:info@ateliershreenu.com?subject=Enquiry—Atelier%20Shreenu",
+  "procurement_email_mailto": "mailto:info@ateliershreenu.com?subject=Vendor%20introduction—Atelier%20Shreenu",
+  "recommend_share": "https://wa.me/?text=Hello—just%20discovered%20%E2%80%9CAtelier%20Shreenu%E2%80%9D%2C%20an%20architecture%20and%20interior%20design%20firm%20in%20Gurugram%2C%20and%20thought%20to%20share%20it.%20Their%20Instagram%3A%20https%3A%2F%2Fwww.instagram.com%2Fateliershreenu",
+  "utm": {
+    "source": "whatsapp",
+    "medium_field": "campaign_type",
+    "campaign_field": "campaign_id",
+    "content_field": "state_id"
+  },
+  "pacing": {
+    "pre_link_pause_ms": 2500,
+    "post_link_pause_ms": 1500,
+    "preview_url": true
+  }
+}

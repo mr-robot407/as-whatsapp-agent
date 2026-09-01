@@ -1,0 +1,21 @@
+{
+  "daily_cap": 50,
+  "batch_size": 10,
+  "batch_interval_minutes": 90,
+  "marketing_templates_per_recipient_per_year": 4,
+  "min_days_between_contacts": {
+    "first_to_second": 30,
+    "second_to_third": 90
+  },
+  "requires_recorded_consent": true,
+  "dispatch_window": {
+    "days": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+    "start": "09:00",
+    "end": "18:00",
+    "timezone": "Asia/Kolkata"
+  },
+  "stop_keywords": [
+    "STOP", "UNSUBSCRIBE", "REMOVE", "NO MORE",
+    "DND", "OPT OUT", "OPTOUT", "EXIT"
+  ]
+}

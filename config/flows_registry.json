@@ -1,0 +1,26 @@
+{
+  "notes": "WhatsApp Flow IDs populated after scripts/publish_flows.py. Autofill is mandatory (Rule E, §3.4).",
+  "flows": {
+    "CONTACT_CONFIRMATION": {
+      "state_id": "S1.14b",
+      "spec_path": "flows/contact_confirmation_S1_14b.json",
+      "flow_id": null,
+      "flow_token_field": "contact_id",
+      "fields": [
+        { "name": "contact_phone_e164", "type": "phone", "required": true, "autofill_source": "wa_id" },
+        { "name": "contact_name",       "type": "text",  "required": true, "autofill_source": "crm.profile.name" },
+        { "name": "contact_email",      "type": "email", "required": true, "autofill_source": "crm.profile.email" }
+      ]
+    },
+    "SITE_LOCATION_CAPTURE": {
+      "state_id": "S1.19.CAP",
+      "spec_path": "flows/site_location_capture_S1_19_CAP.json",
+      "flow_id": null,
+      "flow_token_field": "contact_id",
+      "fields": [
+        { "name": "site_address",       "type": "text",  "required": true, "autofill_source": "crm.profile.site_address" },
+        { "name": "contact_phone_e164", "type": "phone", "required": true, "autofill_source": "crm.profile.phone" }
+      ]
+    }
+  }
+}

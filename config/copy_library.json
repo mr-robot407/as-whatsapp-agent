@@ -1,0 +1,138 @@
+{
+  "notes": "Verbatim message bodies per §3.2. The style guard blocks any generated message not matching an entry here. Populate remaining nodes from Section 05-07 of the directive.",
+  "S1.00": {
+    "body": "Welcome to Atelier Shreenu — an architecture and interior design practice based in Gurugram, with selected works across India. This channel is operated by the studio's automated assistant. Kindly choose the path that fits the reason for the message.",
+    "footer": "Automated channel · Mon–Sat 09:00–18:00 IST"
+  },
+  "S1.10": {
+    "body": "Kindly tell the studio about the nature of the project."
+  },
+  "S1.11": {
+    "body": "Where is the project located? The answer determines the format of the engagement.",
+    "tbd_capture_prompt": "If a city or region is in mind, the studio is glad to record it. (Optional.)"
+  },
+  "S1.12": {
+    "body": "Approximate built-up area? Atelier Shreenu's design engagements commence at 1,500 sq ft."
+  },
+  "S1.12a": {
+    "body": "Atelier Shreenu engages on projects of 1,500 sq ft and above. A studio discussion remains available as a preliminary review of the project; alternatively, the practice may be followed via the studio's other channels."
+  },
+  "S1.13a": {
+    "body": "How does the project fit, in broad terms?"
+  },
+  "S1.13b": {
+    "body": "And the form of engagement?"
+  },
+  "S1.14": {
+    "body": "Thank you. To take the conversation forward, the studio offers a complimentary ten-minute discovery call with the founding partner — Architect Ranjeet Mukherjee. The call is a brief mutual introduction: no fee, no obligation, no preparation required.\n\nShould a considered discussion be appropriate thereafter, the studio offers a paid project discussion — thirty minutes via Google Meet — at Rs. 1,500 + 18% GST (Rs. 1,770).\n\nThe fee for a Project Discussion or Site & Vision Walkthrough is credited in full toward the design consultancy fee where the Agreement is signed within ninety days of the date of payment; the Discovery Call carries no fee and nothing to credit, and paying for a Project Discussion or Site & Vision Walkthrough does not commit the Client to anything further."
+  },
+  "S1.14a": {
+    "body": "Kindly send any additional details about the project — site notes, photographs, drawings, a brief — in this conversation. The notes are recorded and shared with the partner ahead of the call."
+  },
+  "S1.14.GATE": {
+    "body": "Before the partner's slot is held, a brief confirmation. Kindly indicate the relationship to the project."
+  },
+  "S1.14b": {
+    "body": "Kindly confirm the best number for the call — this WhatsApp number, or another — and an email address for the calendar invitation."
+  },
+  "S1.15": {
+    "body": "Kindly choose a slot. The list below shows the next openings on the partner's calendar, within studio hours (Mon–Sat, 09:00–18:00 IST)."
+  },
+  "S1.16": {
+    "body": "The slot is confirmed: {slot_human}. A calendar invitation has been sent to the email on file. Architect Ranjeet Mukherjee will telephone at the chosen time. A short menu is offered below — to reschedule, to view the practice, or to close the conversation."
+  },
+  "S1.17": {
+    "body": "Following the discovery call, a paid project discussion may be scheduled. The studio offers a thirty-minute video meeting via Google Meet — Rs. 1,500 + 18% GST (Rs. 1,770) — to explore the project in considered detail. The fee is credited in full toward the design consultancy fee where the Agreement is signed within ninety days of the date of payment; this payment alone does not commit the Client to anything further.\n\nShould rescheduling be needed, more than 48 hours' notice is refunded in full; between 24 and 48 hours, half the fee is retained; inside 24 hours, or a no-show, the full fee is retained."
+  },
+  "S1.18.step_b": {
+    "body": "A Razorpay payment link for the project discussion — Rs. 1,770, inclusive of 18% GST — has been sent. The slot is held for thirty minutes. On confirmed payment, calendar invitations are despatched to both parties."
+  },
+  "S1.18.step_c": {
+    "body": "Payment of Rs. 1,770 (inclusive of 18% GST) received by Shreenu and Ranjeet Design LLP. This fee is credited in full toward the design consultancy fee where the Agreement is signed within ninety days of today's payment.\n\nThe project discussion is confirmed: {slot_human}. Calendar invitations have been despatched to both parties. Cancellation terms are as set out at booking.\n\nLooking forward to discussing further."
+  },
+  "S1.19": {
+    "body": "Following the project discussion, the studio offers a Site & Vision Walkthrough — an on-site visit to understand the space, the brief, and the aspiration. The fee is credited in full toward the design consultancy fee where the Agreement is signed within ninety days of the date of payment; this payment alone does not commit the Client to anything further.\n\nShould rescheduling be needed, more than 48 hours' notice is refunded in full; between 24 and 48 hours, half the fee is retained; inside 24 hours, or a no-show, the full fee is retained. Travel and, where applicable, accommodation already arranged are non-refundable in all cases."
+  },
+  "S1.19.CAP": {
+    "body": "Kindly share the full address of the site to be visited, and confirm the best number to reach you on. This lets the studio plan travel accurately."
+  },
+  "S1.19a.step_b": {
+    "body": "A Razorpay payment link for the Site & Vision Walkthrough — Rs. 3,540 (Within NCR) or Rs. 7,080 (Outside NCR), inclusive of 18% GST, per the tier selected — has been sent. The slot is held for thirty minutes. On confirmed payment, calendar invitations are despatched to both parties."
+  },
+  "S1.19a.step_c": {
+    "body": "Payment of Rs. {amount_human} (inclusive of 18% GST) received by Shreenu and Ranjeet Design LLP. This fee is credited in full toward the design consultancy fee where the Agreement is signed within ninety days of today's payment.\n\nThe Site & Vision Walkthrough is confirmed: {slot_human}. Calendar invitations have been despatched to both parties. Travel and, where applicable, accommodation already arranged are non-refundable in all cases. Cancellation terms are as set out at booking.\n\nLooking forward to discussing further."
+  },
+  "S1.20a": {
+    "body": "Atelier Shreenu's vendor and service-provider enquiries are processed in a single procurement queue, by category. Kindly select a category."
+  },
+  "S1.20b": {
+    "body": "Kindly send the company or firm name, and a single link — website, catalogue PDF, or portfolio — in the next message. Brochures may also be attached."
+  },
+  "S1.20c": {
+    "body": "Recorded. The studio does not respond individually to vendor or service-provider introductions on this channel. To remain in view of the studio, the practice is followed on Instagram; to be considered for an active brief, the company or firm profile is sent by email to the studio's procurement queue at info@ateliershreenu.com. The partner's direct contact is not shared with vendor or service-provider enquiries."
+  },
+  "S1.40": {
+    "body": "Atelier Shreenu currently hires by invitation. To be considered for future openings, the studio invites a portfolio submission. Kindly select a role of interest."
+  },
+  "S1.40b": {
+    "body": "Kindly send a portfolio (PDF, up to 10 MB) and a one-page CV to info@ateliershreenu.com, with the role of interest in the subject line. The studio reviews submissions when openings arise and does not promise individual replies. Submissions are retained for six months."
+  },
+  "S1.50": {
+    "body": "What may the studio assist with?"
+  },
+  "S1.51": {
+    "body": "Thank you for the interest in the studio's work. Kindly share the publication or platform name, and an email address for a reply — the studio's partners will be in touch within twenty-four hours.",
+    "ack": "Noted. The studio's partners will reply by email within twenty-four hours. Looking forward to discussing further."
+  },
+  "S2.00": {
+    "body": "Welcome — this is Atelier Shreenu, an architecture and interior design practice based in Gurugram, with selected works across India. The studio is writing once, as a brief introduction to {{2}}. Should the work be of interest, the menu below offers a short tour of the practice; should it not, the channel may be closed at once and no further messages will be sent."
+  },
+  "S2.01": {
+    "body": "A short tour of Atelier Shreenu — selected works, featured press, the studio's recent reading. Any row may be tapped without obligation; the menu may be closed at any time."
+  },
+  "S2.99": {
+    "body": "The number is removed from Atelier Shreenu's outreach. No further messages will be sent. The channel remains open at +91 95602 06195 should the studio be of service in future. Thank you."
+  },
+  "E.00": {
+    "body": "Looking forward to discussing further. A short menu, should any of these be useful."
+  },
+  "E.IG": {
+    "body": "The studio's Instagram — @ateliershreenu — carries selected projects, materials in progress, and process notes. Tap below to follow.",
+    "post_link": "The studio's Instagram is at the link above. Looking forward to discussing further."
+  },
+  "E.WEB": {
+    "post_link": "The studio's website is at the link above. Looking forward to discussing further."
+  },
+  "E.EMAIL": {
+    "post_link": "The studio's email address is info@ateliershreenu.com. Looking forward to discussing further."
+  },
+  "E.SUB": {
+    "step_a": "The studio sends a quarterly editorial digest by email — a single dispatch each quarter, with a brief WhatsApp notice in advance. The email on file is {emailOnFile}. Confirm to subscribe.",
+    "step_b": "Subscribed. The first digest will arrive at {email} on or before {nextQuarterStartHuman}. An unsubscribe link is offered with every dispatch."
+  },
+  "E.VC": {
+    "body": "The studio's contact has been shared below. Saving it ensures the studio's messages are recognised in future. Looking forward to discussing further.",
+    "post_vcard": "Saved. Looking forward to discussing further."
+  },
+  "E.RECO": {
+    "body": "The simplest introduction is a forwarded message — and the studio's warmest one is its Instagram. Tap the link below; WhatsApp will open the contact-picker so a friend may be chosen, and the pre-filled note — with the studio's Instagram — will be ready to send."
+  },
+  "X.OOH": {
+    "body": "The message has been received outside studio hours (Mon–Sat, 09:00–18:00 IST). It is in queue and will be attended to on the next working hour."
+  },
+  "X.IDLE": {
+    "body": "The studio noticed that the conversation paused mid-way. The menu may be resumed at any time. Should it be no longer of interest, the conversation may be closed."
+  },
+  "X.ARCH": {
+    "body": "The conversation is closed. Looking forward to discussing further — the studio can be reached at any time on +91 95602 06195. An automated message from Atelier Shreenu."
+  },
+  "X.FALLBACK": {
+    "body": "Kindly select an option from the menu below. Should this not appear, the conversation may be reset by typing the word RESTART."
+  },
+  "X.HUMAN_REQUEST": {
+    "body": "The studio has noted the request for partner attention. A reply follows on the next working hour, within studio hours."
+  },
+  "X.PERSONHOOD_QUERY": {
+    "body": "This is the studio's automated channel. A partner is reached by booking a discovery call below."
+  }
+}
