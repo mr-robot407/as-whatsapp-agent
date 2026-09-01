@@ -1,7 +1,7 @@
 # Atelier Shreenu — WhatsApp Concierge Agent · Partner Requirements
 
 **Prepared for** Architect Ranjeet Mukherjee and the studio team
-**Prepared by** Engineering
+**Prepared by** Addroit Inc
 **Channel** WhatsApp — +91 95602 06195
 **Companion project** as-email-agent (already live)
 
@@ -32,17 +32,17 @@ The studio's WhatsApp Business Account and Cloud API app must exist before Engin
 
 | Field | Value | Status |
 |---|---|---|
-| Meta Business Manager ID |  | ☐ |
-| Meta Business Manager account name | Shreenu and Ranjeet Design LLP | ☐ |
-| Business verification status (Meta) | Verified / Pending | ☐ |
+| Meta Business Manager ID | 1205405625998390 | ✅ |
+| Meta Business Manager account name | Atelier Shreenu | ✅ |
+| Business verification status (Meta) | Pending | ☐ |
 | Two-factor auth enabled on Business Manager | Yes / No | ☐ |
-| Admins listed on Business Manager (name + email) |  | ☐ |
+| Admins listed on Business Manager (name + email) | Shreenu Mukherjee — *email TBD* | ☐ |
 
 ### 1.2 WhatsApp Business Account (WABA)
 
 | Field | Value | Status |
 |---|---|---|
-| WABA ID |  | ☐ |
+| WABA ID | 1615402749911697 | ✅ |
 | Display name (fixed) | Atelier Shreenu | ✅ |
 | Phone number (fixed) | +91 95602 06195 | ✅ |
 | Phone Number ID (Cloud API) |  | ☐ |
@@ -159,11 +159,11 @@ Rule D (§3.4) requires GA4 to have `utm_campaign` configured **before** the fir
 
 | Field | Value | Status |
 |---|---|---|
-| GA4 property ID for ateliershreenu.com |  | ☐ |
-| GA4 measurement ID (G-XXXXXXX) |  | ☐ |
-| Admin access granted to engineering? (email) |  | ☐ |
-| `utm_campaign` custom dimension configured? | Yes / No | ☐ |
-| GTM container (if any) |  | ☐ |
+| GA4 property ID for ateliershreenu.com | 543504017 | ✅ |
+| GA4 measurement ID (G-XXXXXXX) | G-GN7NVMP4TN | ✅ |
+| Admin access granted to engineering? (email) | ateliershreenu@gmail.com | ☐ pending grant |
+| `utm_campaign` custom dimension configured? | **No** — ⚠️ blocker per Rule D §3.4, must be configured before first campaign fires | ☐ |
+| GTM container (if any) | GTM-THQH822B | ✅ |
 
 ---
 

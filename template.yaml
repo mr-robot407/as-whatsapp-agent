@@ -1,0 +1,413 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Atelier Shreenu — WhatsApp Concierge Agent
+
+# The DynamoDB table `as-email-contacts` is created and owned by the sister
+# email-agent stack; this stack references it by name only. Same PK/SK schema
+# and GSI-EMAIL / GSI-PHONE indexes apply.
+
+Globals:
+  Function:
+    Runtime: python3.12
+    Architectures: [arm64]
+    Timeout: 30
+    MemorySize: 256
+    Environment:
+      Variables:
+        TABLE_NAME: as-email-contacts
+        GSI_EMAIL: GSI-EMAIL
+        GSI_PHONE: GSI-PHONE
+        MEDIA_BUCKET: !Ref MediaBucket
+        EVENT_ARCHIVE_BUCKET: !Ref EventArchiveBucket
+        DLQ_URL: !Ref DLQ
+        REGION: !Ref AWS::Region
+        META_DISPLAY_NUMBER: "+919560206195"
+        META_BUSINESS_MANAGER_ID: "1205405625998390"
+        META_WABA_ID: "1615402749911697"
+        META_SECRET_ARN: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:as-whatsapp-agent/meta"
+        WEBHOOK_VERIFY_TOKEN_PARAM: /as-whatsapp-agent/WEBHOOK_VERIFY_TOKEN
+        AGENT_ENABLED_PARAM: /as-whatsapp-agent/AGENT_ENABLED
+    Layers:
+      - !Ref SharedLayer
+
+Resources:
+
+# ─── S3 ──────────────────────────────────────────────────────────────────────
+
+  MediaBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: as-whatsapp-media
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      LifecycleConfiguration:
+        Rules:
+          - Id: expire-inbound-media-90d
+            Status: Enabled
+            Prefix: inbound/
+            ExpirationInDays: 90
+
+  EventArchiveBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: as-whatsapp-events
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      LifecycleConfiguration:
+        Rules:
+          - Id: expire-events-365d
+            Status: Enabled
+            ExpirationInDays: 365
+
+# ─── SQS DLQ ─────────────────────────────────────────────────────────────────
+
+  DLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: as-whatsapp-dlq
+      MessageRetentionPeriod: 1209600  # 14 days
+
+# ─── API Gateway ─────────────────────────────────────────────────────────────
+
+  WhatsAppAgentApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: as-whatsapp-agent-api
+      StageName: prod
+      Description: Meta WhatsApp webhook + Razorpay webhook + one-tap unsubscribe
+
+# ─── Lambda Layer ─────────────────────────────────────────────────────────────
+
+  SharedLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: as-whatsapp-shared
+      Description: Shared utilities — crm, wa_client, style_guard, window_guard, ist_time, consent, killswitch
+      ContentUri: src/shared/
+      CompatibleRuntimes:
+        - python3.12
+      RetentionPolicy: Retain
+    Metadata:
+      BuildMethod: python3.12
+
+# ─── Lambda Functions ─────────────────────────────────────────────────────────
+
+  InboundFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: as-whatsapp-inbound
+      Description: Meta webhook receiver — verify handshake + signature-verified message ingestion
+      CodeUri: src/inbound/
+      Handler: app.handler
+      Events:
+        WebhookVerify:
+          Type: Api
+          Properties:
+            RestApiId: !Ref WhatsAppAgentApi
+            Path: /webhook/whatsapp
+            Method: GET
+        WebhookMessages:
+          Type: Api
+          Properties:
+            RestApiId: !Ref WhatsAppAgentApi
+            Path: /webhook/whatsapp
+            Method: POST
+      DeadLetterQueue:
+        Type: SQS
+        TargetArn: !GetAtt DLQ.Arn
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: as-email-contacts
+        - Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:Query
+              Resource:
+                - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/as-email-contacts/index/GSI-EMAIL"
+                - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/as-email-contacts/index/GSI-PHONE"
+        - Statement:
+            - Effect: Allow
+              Action:
+                - s3:PutObject
+              Resource:
+                - !Sub "arn:aws:s3:::${EventArchiveBucket}/*"
+        - Statement:
+            - Effect: Allow
+              Action:
+                - s3:PutObject
+                - s3:GetObject
+              Resource:
+                - !Sub "arn:aws:s3:::${MediaBucket}/*"
+        - SQSSendMessagePolicy:
+            QueueName: !GetAtt DLQ.QueueName
+        - Statement:
+            - Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource:
+                - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:as-whatsapp-agent/*"
+        - Statement:
+            - Effect: Allow
+              Action:
+                - ssm:GetParameter
+              Resource:
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/as-whatsapp-agent/*"
+
+  FunnelFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: as-whatsapp-funnel
+      Description: Scheduler-driven reminders + Razorpay webhook
+      CodeUri: src/funnel/
+      Handler: app.handler
+      Timeout: 120
+      Environment:
+        Variables:
+          PARTNER_WHATSAPP_E164: "+919560107193"
+      Events:
+        RazorpayWebhook:
+          Type: Api
+          Properties:
+            RestApiId: !Ref WhatsAppAgentApi
+            Path: /webhook/razorpay
+            Method: POST
+        BookingRemindersCron:
+          Type: Schedule
+          Properties:
+            # Every 30 min — sweep for slots in T-24h and T-2h windows
+            Schedule: "rate(30 minutes)"
+            Name: as-whatsapp-reminders-cron
+            Description: Booking-reminder dispatcher
+            Enabled: true
+            Input: '{"source":"aws.scheduler","detail":{"kind":"reminders"}}'
+        IdleSweepCron:
+          Type: Schedule
+          Properties:
+            # Every 90 min — sweep for contacts idle mid-funnel > 24h
+            Schedule: "rate(90 minutes)"
+            Name: as-whatsapp-idle-cron
+            Description: Idle-contact reminder sweep
+            Enabled: true
+            Input: '{"source":"aws.scheduler","detail":{"kind":"idle"}}'
+      DeadLetterQueue:
+        Type: SQS
+        TargetArn: !GetAtt DLQ.Arn
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: as-email-contacts
+        - Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:Query
+              Resource:
+                - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/as-email-contacts/index/GSI-EMAIL"
+                - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/as-email-contacts/index/GSI-PHONE"
+        - SQSSendMessagePolicy:
+            QueueName: !GetAtt DLQ.QueueName
+        - Statement:
+            - Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource:
+                - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:as-whatsapp-agent/*"
+                - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:as-email-agent/*"
+        - Statement:
+            - Effect: Allow
+              Action:
+                - ssm:GetParameter
+              Resource:
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/as-whatsapp-agent/*"
+
+  CampaignsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: as-whatsapp-campaigns
+      Description: S2.00 outreach dispatcher — 90-min cron
+      CodeUri: src/campaigns/
+      Handler: app.handler
+      Timeout: 120
+      Events:
+        CronTrigger:
+          Type: Schedule
+          Properties:
+            Schedule: "rate(90 minutes)"
+            Name: as-whatsapp-campaigns-cron
+            Description: S2.00 broadcast dispatcher
+            Enabled: true
+      DeadLetterQueue:
+        Type: SQS
+        TargetArn: !GetAtt DLQ.Arn
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: as-email-contacts
+        - Statement:
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:GetObjectVersion
+                - s3:ListBucket
+              Resource:
+                - !Sub "arn:aws:s3:::${MediaBucket}"
+                - !Sub "arn:aws:s3:::${MediaBucket}/*"
+        - SQSSendMessagePolicy:
+            QueueName: !GetAtt DLQ.QueueName
+        - Statement:
+            - Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource:
+                - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:as-whatsapp-agent/*"
+        - Statement:
+            - Effect: Allow
+              Action:
+                - ssm:GetParameter
+              Resource:
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/as-whatsapp-agent/*"
+
+  HooksFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: as-whatsapp-hooks
+      Description: One-tap unsubscribe endpoint + Google Calendar pull-sync
+      CodeUri: src/hooks/
+      Handler: app.handler
+      Timeout: 60
+      Events:
+        UnsubscribeGet:
+          Type: Api
+          Properties:
+            RestApiId: !Ref WhatsAppAgentApi
+            Path: /webhook/unsubscribe
+            Method: GET
+        UnsubscribePost:
+          Type: Api
+          Properties:
+            RestApiId: !Ref WhatsAppAgentApi
+            Path: /webhook/unsubscribe
+            Method: POST
+        CalendarSyncCron:
+          Type: Schedule
+          Properties:
+            Schedule: "rate(15 minutes)"
+            Name: as-whatsapp-calendar-sync
+            Description: Pull-sync of Google Calendar cancellations
+            Enabled: true
+            Input: '{"source":"aws.scheduler","detail":{"kind":"calendar_sync"}}'
+      DeadLetterQueue:
+        Type: SQS
+        TargetArn: !GetAtt DLQ.Arn
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: as-email-contacts
+        - SQSSendMessagePolicy:
+            QueueName: !GetAtt DLQ.QueueName
+        - Statement:
+            - Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource:
+                - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:as-whatsapp-agent/*"
+                - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:as-email-agent/*"
+
+  DashboardFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: as-whatsapp-dashboard
+      Description: Internal control panel — kill switch, DLQ, campaign counts, contact search
+      CodeUri: src/dashboard/
+      Handler: app.handler
+      Timeout: 15
+      Environment:
+        Variables:
+          DLQ_URL: !Ref DLQ
+      Events:
+        DashboardRoot:
+          Type: Api
+          Properties:
+            RestApiId: !Ref WhatsAppAgentApi
+            Path: /dashboard
+            Method: GET
+        DashboardProxy:
+          Type: Api
+          Properties:
+            RestApiId: !Ref WhatsAppAgentApi
+            Path: /dashboard/{proxy+}
+            Method: ANY
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: as-email-contacts
+        - Statement:
+            - Effect: Allow
+              Action:
+                - ssm:GetParameter
+                - ssm:PutParameter
+              Resource:
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/as-whatsapp-agent/*"
+        - Statement:
+            - Effect: Allow
+              Action:
+                - sqs:GetQueueAttributes
+              Resource: !GetAtt DLQ.Arn
+
+# ─── EventBridge Scheduler role (Phase 2b will attach schedules to this) ─────
+
+  SchedulerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: as-whatsapp-scheduler-role
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: scheduler.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: InvokeFunnelFunction
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: lambda:InvokeFunction
+                Resource: !GetAtt FunnelFunction.Arn
+
+# ─── SSM parameters (created empty; populate via Console/CLI) ─────────────────
+
+  AgentEnabledParam:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: /as-whatsapp-agent/AGENT_ENABLED
+      Type: String
+      Value: "true"
+      Description: Kill switch for the WhatsApp agent — set to "false" to halt all sends
+
+# ─── Outputs ─────────────────────────────────────────────────────────────────
+
+Outputs:
+  ApiEndpoint:
+    Description: API Gateway base URL — register /webhook/whatsapp with Meta
+    Value: !Sub "https://${WhatsAppAgentApi}.execute-api.${AWS::Region}.amazonaws.com/prod"
+
+  WebhookUrl:
+    Description: Full webhook URL to paste into Meta developer console
+    Value: !Sub "https://${WhatsAppAgentApi}.execute-api.${AWS::Region}.amazonaws.com/prod/webhook/whatsapp"
+
+  MediaBucketName:
+    Value: !Ref MediaBucket
+
+  EventArchiveBucketName:
+    Value: !Ref EventArchiveBucket
+
+  DLQUrl:
+    Value: !Ref DLQ
+
+  SharedLayerArn:
+    Value: !Ref SharedLayer

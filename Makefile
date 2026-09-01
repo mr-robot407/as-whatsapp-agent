@@ -1,8 +1,8 @@
-.PHONY: build deploy test test-unit validate seed clean
+.PHONY: build deploy test test-unit validate clean logs-inbound local-verify local-message
 
-STACK_NAME   := as-email-agent
-REGION       := ap-south-1
-CONFIG_ENV   := default
+STACK_NAME := as-whatsapp-agent
+REGION     := ap-south-1
+CONFIG_ENV := default
 
 build:
 	sam build --use-container
@@ -29,43 +29,14 @@ test: test-unit
 test-unit:
 	python3 -m pytest tests/unit/ -v
 
-test-e2e: seed
-	@echo "Trigger SES inbound by sending a test email to info@ateliershreenu.com"
-
-seed:
-	python3 scripts/seed_test_emails.py
-
-seed-contacts:
-	@[ -f contacts.csv ] || (echo "ERROR: contacts.csv not found" && exit 1)
-	python3 scripts/import_contacts.py --file contacts.csv
-
-validate-classifier:
-	@[ -f labelled_emails.csv ] || (echo "ERROR: labelled_emails.csv not found" && exit 1)
-	python3 scripts/validate_classifier.py --file labelled_emails.csv
-
-upload-assets:
-	bash scripts/upload_assets.sh
-
 logs-inbound:
 	sam logs --name InboundFunction --stack-name $(STACK_NAME) --region $(REGION) --tail
 
-logs-campaigns:
-	sam logs --name CampaignsFunction --stack-name $(STACK_NAME) --region $(REGION) --tail
+local-verify:
+	sam local invoke InboundFunction --event tests/events/webhook_verify.json
 
-logs-funnel:
-	sam logs --name FunnelFunction --stack-name $(STACK_NAME) --region $(REGION) --tail
-
-logs-hooks:
-	sam logs --name HooksFunction --stack-name $(STACK_NAME) --region $(REGION) --tail
-
-local-inbound:
-	sam local invoke InboundFunction --event tests/events/ses_inbound.json
-
-local-hooks:
-	sam local invoke HooksFunction --event tests/events/sns_bounce.json
-
-local-campaigns:
-	sam local invoke CampaignsFunction --event tests/events/cron_event.json
+local-message:
+	sam local invoke InboundFunction --event tests/events/webhook_message_text.json
 
 clean:
 	rm -rf .aws-sam/

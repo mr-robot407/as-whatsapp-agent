@@ -1,0 +1,22 @@
+{
+  "resource": "/webhook/whatsapp",
+  "path": "/webhook/whatsapp",
+  "httpMethod": "GET",
+  "headers": {
+    "Host": "example.execute-api.ap-south-1.amazonaws.com",
+    "User-Agent": "facebookexternalhit/1.1"
+  },
+  "queryStringParameters": {
+    "hub.mode": "subscribe",
+    "hub.verify_token": "REPLACE_ME_WITH_VERIFY_TOKEN",
+    "hub.challenge": "1234567890"
+  },
+  "requestContext": {
+    "resourcePath": "/webhook/whatsapp",
+    "httpMethod": "GET",
+    "path": "/prod/webhook/whatsapp",
+    "stage": "prod"
+  },
+  "body": null,
+  "isBase64Encoded": false
+}

@@ -1,0 +1,117 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Atelier Shreenu — WhatsApp Agent Dashboard</title>
+<style>
+  :root { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; color: #222; }
+  body { max-width: 960px; margin: 32px auto; padding: 0 24px; line-height: 1.5; }
+  h1 { font-weight: 500; letter-spacing: 0.02em; margin-bottom: 4px; }
+  .sub { color: #666; margin-top: 0; margin-bottom: 32px; font-size: 14px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 32px; }
+  .card { border: 1px solid #ddd; border-radius: 8px; padding: 20px; }
+  .card h3 { margin: 0 0 8px 0; font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: #666; font-weight: 500; }
+  .card .val { font-size: 28px; font-weight: 300; }
+  .card .val.on { color: #22a06b; }
+  .card .val.off { color: #d54747; }
+  button { padding: 10px 20px; border: 1px solid #222; border-radius: 6px; background: #fff; cursor: pointer; font-size: 14px; }
+  button:hover { background: #222; color: #fff; }
+  input[type=text] { padding: 10px 14px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; width: 320px; }
+  section { margin-bottom: 40px; }
+  h2 { font-weight: 500; font-size: 18px; border-bottom: 1px solid #eee; padding-bottom: 8px; }
+  pre { background: #f6f6f6; padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 12px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid #eee; }
+  th { color: #666; font-weight: 500; }
+  .pill { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 500; }
+  .pill.ok  { background: #dff5e6; color: #1b6e3f; }
+  .pill.na  { background: #fbe3e3; color: #862222; }
+</style>
+
+<h1>WhatsApp Agent</h1>
+<p class="sub">Atelier Shreenu — internal control panel</p>
+
+<section id="status">
+  <div class="grid">
+    <div class="card"><h3>Agent</h3><div class="val" id="killswitch">—</div>
+      <button id="toggle" style="margin-top:10px;">Toggle</button></div>
+    <div class="card"><h3>DLQ depth</h3><div class="val" id="dlq">—</div></div>
+    <div class="card"><h3>Outreach sent today</h3><div class="val" id="outreach">—</div></div>
+    <div class="card"><h3>Inbound today</h3><div class="val" id="inbound">—</div></div>
+    <div class="card"><h3>Bookings today</h3><div class="val" id="bookings">—</div></div>
+  </div>
+</section>
+
+<section id="templates">
+  <h2>Template approvals</h2>
+  <table id="templates-table">
+    <thead><tr><th>Key</th><th>Category</th><th>State</th><th>Meta ID</th><th>DLT ID</th></tr></thead>
+    <tbody></tbody>
+  </table>
+</section>
+
+<section id="flows">
+  <h2>Flows</h2>
+  <table id="flows-table">
+    <thead><tr><th>Key</th><th>State</th><th>Flow ID</th></tr></thead>
+    <tbody></tbody>
+  </table>
+</section>
+
+<section id="contact">
+  <h2>Contact lookup</h2>
+  <input type="text" id="cid" placeholder="contact_id (uuid)" />
+  <button id="lookup">Look up</button>
+  <pre id="contact-out">—</pre>
+</section>
+
+<script>
+const $ = s => document.querySelector(s);
+
+async function refresh() {
+  const s = await fetch("api/status").then(r => r.json());
+  $("#killswitch").textContent = s.killswitch ? "ENABLED" : "DISABLED";
+  $("#killswitch").className = "val " + (s.killswitch ? "on" : "off");
+  $("#dlq").textContent = s.dlq_depth < 0 ? "n/a" : s.dlq_depth;
+  $("#outreach").textContent = s.counts_today.outreach_sent;
+  $("#inbound").textContent = s.counts_today.inbound_received;
+  $("#bookings").textContent = s.counts_today.bookings_created;
+}
+
+async function loadTemplates() {
+  const t = await fetch("api/templates").then(r => r.json());
+  const rows = Object.entries(t.templates || {}).map(([k, v]) => {
+    const metaPill = v.meta_template_id ? '<span class="pill ok">OK</span>' : '<span class="pill na">missing</span>';
+    const dltPill  = v.dlt_template_id  ? '<span class="pill ok">OK</span>' : '<span class="pill na">missing</span>';
+    return `<tr><td><code>${k}</code></td><td>${v.category}</td><td>${v.state_id}</td><td>${metaPill}</td><td>${dltPill}</td></tr>`;
+  });
+  $("#templates-table tbody").innerHTML = rows.join("");
+}
+
+async function loadFlows() {
+  const t = await fetch("api/flows").then(r => r.json());
+  const rows = Object.entries(t.flows || {}).map(([k, v]) => {
+    const pill = v.flow_id ? '<span class="pill ok">published</span>' : '<span class="pill na">not published</span>';
+    return `<tr><td><code>${k}</code></td><td>${v.state_id}</td><td>${pill}</td></tr>`;
+  });
+  $("#flows-table tbody").innerHTML = rows.join("");
+}
+
+$("#toggle").addEventListener("click", async () => {
+  const cur = $("#killswitch").textContent === "ENABLED";
+  await fetch("api/killswitch", {
+    method: "POST", headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({enabled: !cur})
+  });
+  refresh();
+});
+
+$("#lookup").addEventListener("click", async () => {
+  const cid = $("#cid").value.trim();
+  if (!cid) return;
+  const r = await fetch("api/contact/" + encodeURIComponent(cid)).then(r => r.json());
+  $("#contact-out").textContent = JSON.stringify(r, null, 2);
+});
+
+refresh();
+loadTemplates();
+loadFlows();
+</script>

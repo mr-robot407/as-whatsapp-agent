@@ -1,0 +1,20 @@
+{
+  "resource": "/webhook/whatsapp",
+  "path": "/webhook/whatsapp",
+  "httpMethod": "POST",
+  "headers": {
+    "Host": "example.execute-api.ap-south-1.amazonaws.com",
+    "Content-Type": "application/json",
+    "User-Agent": "facebookexternalhit/1.1",
+    "X-Hub-Signature-256": "sha256=REPLACE_ME_WITH_HMAC_OF_BODY"
+  },
+  "queryStringParameters": null,
+  "requestContext": {
+    "resourcePath": "/webhook/whatsapp",
+    "httpMethod": "POST",
+    "path": "/prod/webhook/whatsapp",
+    "stage": "prod"
+  },
+  "body": "{\"object\":\"whatsapp_business_account\",\"entry\":[{\"id\":\"1615402749911697\",\"changes\":[{\"field\":\"messages\",\"value\":{\"messaging_product\":\"whatsapp\",\"metadata\":{\"display_phone_number\":\"919560206195\",\"phone_number_id\":\"REPLACE_ME_PHONE_NUMBER_ID\"},\"contacts\":[{\"profile\":{\"name\":\"Test Client\"},\"wa_id\":\"919812345678\"}],\"messages\":[{\"from\":\"919812345678\",\"id\":\"wamid.TEST123\",\"timestamp\":\"1730000000\",\"text\":{\"body\":\"Hello Atelier Shreenu\"},\"type\":\"text\"}]}}]}]}",
+  "isBase64Encoded": false
+}
