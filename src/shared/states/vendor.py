@@ -6,6 +6,7 @@ archive with instructions on how to reach the studio via email.
 
 from __future__ import annotations
 
+import answering
 import copy_library
 import crm
 import wa_client
@@ -47,6 +48,16 @@ def handle_s120a(ctx) -> str:
 # ─── S1.20b capture ──────────────────────────────────────────────────────────
 
 def handle_s120b(ctx) -> str:
+    # If the vendor is asking a follow-up question (FAQ intent from router),
+    # answer via the LLM before archiving so the exchange feels considered.
+    if ctx.message_type == "text" and ctx.intent == "FAQ":
+        return answering.answer_or_fallback(
+            ctx,
+            contact_kind="vendor",
+            fallback_state_id="S1.20b",
+            fallback_copy_state_id="S1.20b",
+        )
+
     if ctx.message_type in ("text", "document", "image"):
         payload = {
             "category": ctx.session.get("vendor_category", "UNSPECIFIED"),
@@ -64,6 +75,21 @@ def handle_s120b(ctx) -> str:
 # ─── S1.20c archive with instructions ────────────────────────────────────────
 
 def handle_s120c(ctx) -> str:
-    wa_client.send_text(ctx.wa_id, copy_library.get("S1.20c", "body"), state_id="S1.20c")
-    crm.write_event(ctx.contact_id, "VENDOR_ROUTED", {"category": ctx.session.get("vendor_category", "")})
+    # First entry: send the routing confirmation and archive.
+    if not ctx.session.get("vendor_routed_ack_sent"):
+        wa_client.send_text(ctx.wa_id, copy_library.get("S1.20c", "body"), state_id="S1.20c")
+        crm.write_event(ctx.contact_id, "VENDOR_ROUTED", {"category": ctx.session.get("vendor_category", "")})
+        ctx.session["vendor_routed_ack_sent"] = True
+        return "X.ARCH"
+
+    # Follow-up ping after archive — vendors often ask for a timeline. Answer
+    # via the LLM instead of silence; router already jumped to X.ARCH for
+    # non-questions.
+    if ctx.message_type == "text":
+        return answering.answer_or_fallback(
+            ctx,
+            contact_kind="vendor",
+            fallback_state_id="X.ARCH",
+            fallback_copy_state_id="S1.20c",
+        )
     return "X.ARCH"

@@ -3,10 +3,17 @@
 Order of checks (short-circuit):
   1. Killswitch (SSM) — if off, do nothing.
   2. DND — silent drop (contact opted out).
-  3. STOP keyword → S2.99 opt-out flow + set_dnd_whatsapp + write OPT_OUT event.
-  4. RESTART keyword → S1.00 welcome, session cleared.
-  5. Out-of-hours → X.OOH ack (template) + let the current state also process.
-  6. Dispatch to state handler based on `current_state`.
+  3. Human takeover — a partner is handling this thread manually; ingest the
+     inbound (for the audit log) but suppress every agent-generated reply.
+  4. STOP keyword → S2.99 opt-out flow + set_dnd_whatsapp + write OPT_OUT event.
+  5. RESTART keyword → S1.00 welcome, session cleared.
+  6. LLM intent classifier (if enabled) — free-text messages get classified.
+     PERSONHOOD_QUERY / HUMAN_REQUEST / OPT_OUT / BOOKING_CHANGE / OFF_TOPIC
+     short-circuit to their scripted state before the funnel dispatcher runs.
+     FAQ intents fall through to the state handler, which decides whether to
+     answer via LLM or continue the scripted flow.
+  7. Out-of-hours → X.OOH ack (template) + let the current state also process.
+  8. Dispatch to state handler based on `current_state`.
 
 State handlers live in `src/shared/states/*.py` and expose `handle(ctx)` returning
 the next state_id. The router persists that transition.
@@ -20,6 +27,7 @@ from typing import Callable
 import consent
 import ist_time
 import killswitch
+import llm
 import state_machine
 from states import (
     career,
@@ -44,6 +52,7 @@ class RouterContext:
     message: dict
     current_state: str = "S1.00"
     session: dict = field(default_factory=dict)
+    intent: str = ""  # populated by the LLM classifier on free-text inputs
 
     # Convenience accessors -------------------------------------------------
     @property
@@ -131,6 +140,15 @@ STATE_REGISTRY: dict[str, Callable[[RouterContext], str]] = {
 
 # ─── Entry point ─────────────────────────────────────────────────────────────
 
+# Intent labels that short-circuit the normal state dispatch. Order matters:
+# OPT_OUT is checked before anything else; PERSONHOOD_QUERY and HUMAN_REQUEST
+# jump to their scripted handlers regardless of current_state.
+_INTENT_JUMP: dict[str, str] = {
+    "PERSONHOOD_QUERY": "X.PERSONHOOD_QUERY",
+    "HUMAN_REQUEST":    "X.HUMAN_REQUEST",
+}
+
+
 def route(contact_id: str, wa_id: str, message: dict) -> str:
     """Handle one inbound message end-to-end. Return the state we ended in."""
     if not killswitch.is_enabled():
@@ -141,6 +159,13 @@ def route(contact_id: str, wa_id: str, message: dict) -> str:
         print(f"router: DND set — dropped inbound for {contact_id}")
         return "DROPPED_DND"
 
+    if consent.is_human_takeover_active(contact_id):
+        # A partner is handling this thread manually — record the inbound but
+        # do not emit any agent reply. The inbound has already been written by
+        # the webhook handler; nothing more to do here.
+        print(f"router: human takeover active for {contact_id} — muting agent")
+        return "MUTED_HUMAN_TAKEOVER"
+
     current_state, session = state_machine.get_state(contact_id)
     ctx = RouterContext(
         contact_id=contact_id,
@@ -150,7 +175,7 @@ def route(contact_id: str, wa_id: str, message: dict) -> str:
         session=session,
     )
 
-    # STOP wins over everything.
+    # STOP keyword wins over everything.
     if state_machine.is_stop_keyword(ctx.text_body):
         print(f"router: STOP keyword from {contact_id} — routing to S2.99")
         next_state = exceptions.handle_stop(ctx)
@@ -164,6 +189,25 @@ def route(contact_id: str, wa_id: str, message: dict) -> str:
         next_state = welcome.handle(ctx)
         state_machine.set_state(contact_id, next_state)
         return next_state
+
+    # Classify intent on free-text inbounds. Button/list replies are structured
+    # inputs — the state handler consumes them directly, no LLM call needed.
+    if ctx.message_type == "text" and ctx.text_body.strip():
+        ctx.intent = llm.classify_intent(ctx.text_body, current_state=current_state)
+        if ctx.intent == "OPT_OUT":
+            # Conversational STOP — treat identically to the keyword path.
+            print(f"router: LLM intent OPT_OUT for {contact_id} — routing to S2.99")
+            next_state = exceptions.handle_stop(ctx)
+            state_machine.set_state(contact_id, next_state)
+            return next_state
+        jump = _INTENT_JUMP.get(ctx.intent)
+        if jump:
+            print(f"router: LLM intent {ctx.intent!r} for {contact_id} — jump to {jump}")
+            handler = STATE_REGISTRY.get(jump, exceptions.fallback)
+            next_state = handler(ctx)
+            if next_state and next_state != current_state:
+                state_machine.set_state(contact_id, next_state)
+            return next_state
 
     # Out-of-hours: X.OOH runs its template ack THEN we still dispatch normally
     # so the user's message is not lost — the state handler queues its own reply.

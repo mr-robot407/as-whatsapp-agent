@@ -27,6 +27,10 @@ Globals:
         META_SECRET_ARN: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:as-whatsapp-agent/meta"
         WEBHOOK_VERIFY_TOKEN_PARAM: /as-whatsapp-agent/WEBHOOK_VERIFY_TOKEN
         AGENT_ENABLED_PARAM: /as-whatsapp-agent/AGENT_ENABLED
+        LLM_ENABLED_PARAM: /as-whatsapp-agent/LLM_ENABLED
+        ANTHROPIC_CLASSIFIER_MODEL: claude-haiku-4-5-20251001
+        ANTHROPIC_REPLY_MODEL: claude-haiku-4-5-20251001
+        ANTHROPIC_SECRET_ARN: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:as-whatsapp-agent/anthropic"
     Layers:
       - !Ref SharedLayer
 
@@ -388,6 +392,14 @@ Resources:
       Type: String
       Value: "true"
       Description: Kill switch for the WhatsApp agent — set to "false" to halt all sends
+
+  LlmEnabledParam:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: /as-whatsapp-agent/LLM_ENABLED
+      Type: String
+      Value: "false"
+      Description: Feature flag for the LLM answering layer. Set "true" once ANTHROPIC key secret is populated + smoke tests pass.
 
 # ─── Outputs ─────────────────────────────────────────────────────────────────
 

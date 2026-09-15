@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import answering
 import copy_library
 import crm
 import wa_client
@@ -36,11 +37,21 @@ def handle_s150(ctx) -> str:
 def handle_s151(ctx) -> str:
     # Capture publication name + email freeform, then send ack.
     if ctx.message_type == "text" and ctx.text_body.strip():
+        # If the press contact is asking a follow-up question (FAQ intent),
+        # answer via the LLM before archiving.
+        if ctx.intent == "FAQ" and ctx.session.get("press_captured"):
+            return answering.answer_or_fallback(
+                ctx,
+                contact_kind="press",
+                fallback_state_id="X.ARCH",
+                fallback_copy_state_id="S1.51",
+            )
         crm.write_event(
             ctx.contact_id,
             "PRESS_CAPTURE",
             {"text": ctx.text_body[:2000]},
         )
+        ctx.session["press_captured"] = True
         wa_client.send_text(ctx.wa_id, copy_library.get("S1.51", "ack"), state_id="S1.51.ack")
         return "X.ARCH"
 

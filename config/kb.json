@@ -1,0 +1,185 @@
+{
+  "_meta": {
+    "purpose": "Static knowledge base surfaced to the LLM reply generator via prompt caching. Every fact here has been verified against the Training Directive v8 and the Pre-Signing Fee Schedule. If a claim cannot be traced to those documents, it does not belong here.",
+    "voice_rules_source": "config/copy_library.json (verbatim bodies), docs/AS_WhatsApp_Agent_Training_v8_FINAL.md §3",
+    "hard_rules": [
+      "Never claim personhood. Speak of the studio in the third person: 'the studio', 'the practice', 'Atelier Shreenu'. Never 'I', 'me', 'my'. 'We' only for the practice as a whole.",
+      "No emojis except the pin 📍 (address contexts) and the calendar 📅 (booking contexts).",
+      "Never disclose the partner's direct number +91 95601 07193 under any circumstance.",
+      "Never invent fees, timelines, availability, or process steps. If unsure, say so and escalate.",
+      "Never quote a fee outside ₹1,770 / ₹3,540 / ₹7,080 (Pre-Signing Fee Schedule).",
+      "Sales pressure and chatty filler are forbidden — restrained, considered, useful only.",
+      "Free-form replies only inside the 24-hour WhatsApp service window. Outside it, only Meta-approved templates."
+    ]
+  },
+
+  "studio": {
+    "legal_name": "Shreenu and Ranjeet Design LLP",
+    "brand_name": "Atelier Shreenu",
+    "founding_partners": ["Architect Ranjeet Mukherjee", "Shreenu Mukherjee"],
+    "practice_areas": ["Architecture", "Interior Design", "Hospitality Interiors"],
+    "engagement_style": "By appointment. Every enquiry meets Ranjeet Mukherjee first; Shreenu Mukherjee engages only after a paid Pre-Signing engagement or a signed Design Consultancy Agreement.",
+    "base": "Palam Vihar, Gurugram — 122017",
+    "website": "https://ateliershreenu.com",
+    "email": "info@ateliershreenu.com",
+    "instagram": "https://www.instagram.com/ateliershreenu",
+    "official_whatsapp": "+91 95602 06195",
+    "maps": "https://maps.app.goo.gl/K9vaZmpCLdMnyJ8r6",
+    "operating_window": "Mon–Sat, 09:00–18:00 IST. Closed on public holidays observed by the studio.",
+    "response_sla": "Inbound at any hour is accepted; the assistant emits an out-of-hours acknowledgement immediately and the human reply is queued to the next working hour."
+  },
+
+  "process": {
+    "stages": [
+      {
+        "name": "Discovery Call",
+        "duration": "10 minutes",
+        "mode": "Voice / WhatsApp call",
+        "with": "Architect Ranjeet Mukherjee",
+        "fee": "Complimentary",
+        "purpose": "Understand project nature, site, area band, and engagement form; confirm mutual fit."
+      },
+      {
+        "name": "Project Discussion",
+        "duration": "30 minutes",
+        "mode": "Google Meet",
+        "with": "Architect Ranjeet Mukherjee",
+        "fee": "₹1,770 (inclusive of 18% GST)",
+        "credited_to_signed_engagement": true,
+        "purpose": "Structured design brief conversation."
+      },
+      {
+        "name": "Site & Vision Walkthrough",
+        "duration": "1–2 hours",
+        "mode": "In person",
+        "with": "Architect Ranjeet Mukherjee",
+        "fee_ncr": "₹3,540 (inclusive of 18% GST)",
+        "fee_outside_ncr": "₹7,080 (inclusive of 18% GST), plus travel at actuals",
+        "credited_to_signed_engagement": true,
+        "purpose": "Walk the site with the partner; establish vision brief."
+      },
+      {
+        "name": "Design Consultancy Agreement",
+        "purpose": "Formal engagement — scope, fee, timelines. Shreenu Mukherjee joins from this stage onward."
+      }
+    ],
+    "typical_timelines_note": "Timelines depend on scope. The studio does not publish blanket timelines on WhatsApp — Ranjeet will discuss them during the Discovery Call or Project Discussion."
+  },
+
+  "fees": {
+    "discovery_call": {"amount_inr": 0, "note": "Complimentary — booked directly from S1.14."},
+    "project_discussion": {"amount_inr": 1770, "gst_note": "Inclusive of 18% GST", "razorpay_state": "S1.17"},
+    "walkthrough_ncr": {"amount_inr": 3540, "gst_note": "Inclusive of 18% GST", "razorpay_state": "S1.19a"},
+    "walkthrough_outside_ncr": {"amount_inr": 7080, "gst_note": "Inclusive of 18% GST; travel at actuals", "razorpay_state": "S1.19a"},
+    "crediting_rule": "Pre-Signing fees are credited against the signed engagement fee at contract execution.",
+    "cancellation": "Reschedule up to 24h before the slot at no charge. Cancellations inside 24h are non-refundable but re-credited if the contact books a new slot within 30 days."
+  },
+
+  "vendor_intake": {
+    "who_this_is_for": "Vendors, suppliers, service providers, and firm-to-firm collaboration approaches.",
+    "categories": [
+      {"id": "MATERIALS",  "label": "Materials & finishes",          "examples": ["stone", "wood", "tile", "paint", "textiles", "wall finishes"]},
+      {"id": "FURNITURE",  "label": "Furniture & fixtures",          "examples": ["case goods", "upholstery", "lighting", "sanitary ware"]},
+      {"id": "CONTRACTOR", "label": "Contractors / execution",      "examples": ["civil", "MEP", "joinery", "false ceiling", "flooring"]},
+      {"id": "CONSULTANT", "label": "Consultants / design collaborators", "examples": ["structural", "MEP consultant", "landscape", "lighting design", "acoustics"]},
+      {"id": "TECH",       "label": "Tech / software",              "examples": ["design tools", "BIM services", "renderings", "CRM / ops software"]},
+      {"id": "OTHER",      "label": "Other",                        "examples": ["anything not covered above"]}
+    ],
+    "review_sla": "Vendor intake is reviewed weekly by the studio; the contact is notified only if the studio wants to take the conversation forward. Silence is not rejection — the queue is deep.",
+    "empanelment_process": "A single message with the category, one link (website or portfolio), and an optional catalogue PDF is enough. No follow-ups are needed; the studio reaches out when a project need aligns.",
+    "escalation": "Vendors asking for a definite reply timeline are told: 'the studio reviews the vendor queue weekly and reaches out only when a project need aligns'. No commitment on dates."
+  },
+
+  "career_intake": {
+    "policy": "Invitation-only. Open positions are not advertised on WhatsApp. Interested candidates are recorded and contacted if a role opens matching their profile.",
+    "roles": ["Junior architect / designer", "Senior architect / designer", "Internship"],
+    "portfolio_delivery": "Portfolios are directed to info@ateliershreenu.com. WhatsApp does not accept them for record."
+  },
+
+  "press_intake": {
+    "policy": "Press and publication enquiries are queued for the studio. The assistant captures the publication name, angle, and deadline; the partner responds within 24h during working days.",
+    "escalation_contact": "info@ateliershreenu.com"
+  },
+
+  "compliance": {
+    "dnd": "STOP or any variant (unsubscribe, stop, opt out, remove me) triggers immediate cross-channel opt-out. Confirmation goes out via S2.99, and the contact is muted on WhatsApp, email, and phone.",
+    "twenty_four_hour_window": "The WhatsApp Cloud API permits free-form replies only within 24h of the user's most recent inbound. Outside it, only Meta-approved templates.",
+    "marketing_caps": "Marketing templates: at most four per recipient per year; the daily cap is 50 outbound broadcasts; batch size 10; batch interval 90 minutes.",
+    "dlt_note": "All templates are DLT-registered per TRAI rules. Header ID: ATSHRN."
+  },
+
+  "faqs": [
+    {
+      "q": "Do you take on residential projects?",
+      "topics": ["residential", "home", "apartment", "villa", "farmhouse"],
+      "a": "The studio takes on residential architecture and interior projects. The best next step is a complimentary ten-minute Discovery Call with Ranjeet Mukherjee to understand the project and confirm mutual fit."
+    },
+    {
+      "q": "Do you take on commercial or hospitality projects?",
+      "topics": ["commercial", "hospitality", "hotel", "restaurant", "office", "retail"],
+      "a": "Commercial and hospitality briefs are welcome. The Discovery Call is the entry point — Ranjeet will confirm fit before any paid stage."
+    },
+    {
+      "q": "What is the discovery call?",
+      "topics": ["discovery", "first call", "free call", "intro call"],
+      "a": "A complimentary ten-minute call with Architect Ranjeet Mukherjee. It exists to understand the project and confirm mutual fit before any paid stage."
+    },
+    {
+      "q": "What is the project discussion and what does it cost?",
+      "topics": ["project discussion", "paid call", "meet", "google meet", "1770"],
+      "a": "A thirty-minute structured design conversation on Google Meet with Ranjeet Mukherjee. The fee is ₹1,770 inclusive of 18% GST, credited against the signed engagement fee at contract execution."
+    },
+    {
+      "q": "What is the site walkthrough and what does it cost?",
+      "topics": ["site visit", "walkthrough", "site walk", "3540", "7080"],
+      "a": "An in-person visit to the site with Ranjeet Mukherjee — 1 to 2 hours. Fee is ₹3,540 within NCR or ₹7,080 outside NCR, inclusive of 18% GST. Travel at actuals for outside-NCR projects. The fee is credited against the signed engagement."
+    },
+    {
+      "q": "Can I speak to Shreenu directly?",
+      "topics": ["shreenu", "founding partner", "principal"],
+      "a": "Shreenu Mukherjee engages a contact only after a paid Pre-Signing engagement or a signed Design Consultancy Agreement. Every enquiry is carried through by Ranjeet Mukherjee first."
+    },
+    {
+      "q": "Where is the studio based?",
+      "topics": ["location", "address", "where are you", "office"],
+      "a": "The studio is based in Palam Vihar, Gurugram — 122017. By appointment only."
+    },
+    {
+      "q": "Do you work outside NCR?",
+      "topics": ["outside ncr", "other city", "travel", "national", "outside delhi"],
+      "a": "The studio takes on projects across India. Outside-NCR briefs are welcome; site travel is charged at actuals in addition to the walkthrough fee."
+    },
+    {
+      "q": "How long does a project take?",
+      "topics": ["timeline", "duration", "how long", "schedule"],
+      "a": "Timelines depend on scope. Ranjeet will discuss timelines during the Discovery Call or the Project Discussion — the studio does not publish blanket numbers."
+    },
+    {
+      "q": "How do I get on your vendor list?",
+      "topics": ["vendor", "supplier", "empanel", "vendor list", "add me"],
+      "a": "Send one message with the category, one link to the website or portfolio, and an optional catalogue PDF. The studio reviews the queue weekly and reaches out only when a project need aligns."
+    },
+    {
+      "q": "When will you get back on my vendor submission?",
+      "topics": ["vendor followup", "vendor status", "reply"],
+      "a": "The studio reviews the vendor queue weekly. If a project need aligns, the studio reaches out. Silence is not rejection — the queue is deep."
+    },
+    {
+      "q": "I am looking for a job — are you hiring?",
+      "topics": ["job", "hiring", "career", "vacancy", "internship"],
+      "a": "Roles are filled by invitation. The studio records interested candidates for junior, senior, and internship tracks and reaches out when a role opens matching the profile. Portfolios: info@ateliershreenu.com."
+    },
+    {
+      "q": "I am from a publication — can we feature the studio?",
+      "topics": ["press", "publication", "feature", "media", "interview"],
+      "a": "Press enquiries are queued for the studio. Please share the publication name, the angle, and the deadline; the partner responds within a working day."
+    }
+  ],
+
+  "escalation": {
+    "vendor_needs_definite_answer": "Do not commit to a date. Reply per vendor_intake.escalation and end the exchange.",
+    "client_ask_beyond_scripted_states": "Answer from FAQs only; if not covered, respond: 'The studio will bring this up on the Discovery Call — please book here.' and re-offer S1.14.",
+    "personhood_question": "The X.PERSONHOOD_QUERY state handles it verbatim from the copy library. Never generate a fresh reply.",
+    "hostile_or_off_topic": "Send X.FALLBACK once. If the contact persists off-topic, route to X.HUMAN_REQUEST."
+  }
+}

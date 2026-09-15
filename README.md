@@ -12,8 +12,9 @@ Authoritative behaviour is defined in `docs/AS_WhatsApp_Agent_Training_v8_FINAL.
 | Layer            | Service                                     |
 |------------------|---------------------------------------------|
 | Ingress          | API Gateway → Lambda (`src/inbound/`)       |
-| Orchestration    | AWS Step Functions (`statemachines/`)       |
-| Data             | Amazon DynamoDB (`as-contacts`, shared)     |
+| Orchestration    | Python state machine in `src/shared/router.py` (parity with email agent) |
+| LLM              | Anthropic Claude Haiku (`src/shared/llm.py`) with prompt caching, gated by SSM flag |
+| Data             | Amazon DynamoDB (`as-email-contacts`, shared) |
 | Media            | Amazon S3 (`as-whatsapp-media`)             |
 | Scheduling       | Amazon EventBridge (slow-drip broadcast)    |
 | Secrets          | AWS Secrets Manager                         |
@@ -39,9 +40,11 @@ Authoritative behaviour is defined in `docs/AS_WhatsApp_Agent_Training_v8_FINAL.
 - `src/hooks/`     — Razorpay webhook, Calendar sync, IG growth writer.
 - `src/shared/`    — CRM client, WA client, style guard, link builder,
                      window guard, calendar client, Razorpay validator,
-                     consent writer, identity resolver.
+                     consent writer, identity resolver, `llm.py`
+                     (Anthropic classifier + reply generator with prompt
+                     caching), `answering.py` (LLM-answering helper),
+                     intent-aware `router.py`, state handlers under `states/`.
 - `src/dashboard/` — read views for the studio.
-- `statemachines/` — Step Functions ASL definitions.
 - `templates/`     — Meta-approved template bodies (marketing / utility).
 - `terraform/`     — infrastructure as code.
 - `tests/`         — unit tests and sample Meta webhook events.

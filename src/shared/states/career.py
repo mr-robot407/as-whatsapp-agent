@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import answering
 import copy_library
 import crm
 import wa_client
@@ -33,5 +34,15 @@ def handle_s140(ctx) -> str:
 
 
 def handle_s140b(ctx) -> str:
-    wa_client.send_text(ctx.wa_id, copy_library.get("S1.40b", "body"), state_id="S1.40b")
+    if not ctx.session.get("career_ack_sent"):
+        wa_client.send_text(ctx.wa_id, copy_library.get("S1.40b", "body"), state_id="S1.40b")
+        ctx.session["career_ack_sent"] = True
+        return "X.ARCH"
+    if ctx.message_type == "text":
+        return answering.answer_or_fallback(
+            ctx,
+            contact_kind="career",
+            fallback_state_id="X.ARCH",
+            fallback_copy_state_id="S1.40b",
+        )
     return "X.ARCH"
